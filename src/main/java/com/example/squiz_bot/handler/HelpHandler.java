@@ -12,6 +12,7 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
+import static com.example.squiz_bot.handler.QuizHandler.QUIZ_START;
 import static com.example.squiz_bot.handler.RegistrationHandler.NAME_CHANGE;
 import static com.example.squiz_bot.util.TelegramUtil.createInlineKeyboardButton;
 import static com.example.squiz_bot.util.TelegramUtil.createMessageTemplate;
@@ -21,17 +22,18 @@ import static com.example.squiz_bot.util.TelegramUtil.createMessageTemplate;
 public class HelpHandler implements Handler {
 
     @Override
-    public List<PartialBotApiMethod<? extends Serializable>> handle(User user, String message) {
+    public List<SendMessage> handle(User user, String message) {
         // Создаем кнопку для смены имени
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
 
         List<InlineKeyboardButton> inlineKeyboardButtonsRowOne = List.of(
-                createInlineKeyboardButton("Change name", NAME_CHANGE));
+                createInlineKeyboardButton("Изменить имя", NAME_CHANGE),
+                createInlineKeyboardButton("Запустить испытание", QUIZ_START));
 
         inlineKeyboardMarkup.setKeyboard(List.of(inlineKeyboardButtonsRowOne));
         SendMessage finalMessage = createMessageTemplate(user);
         finalMessage.setText(String.format("" +
-                "You've asked for help %s? Here it comes!", user.getName()));
+                "Помощь вызывали %s? Нет? Но  я всё равно уже тут. Ну, выкладывай, что там у тебя...", user.getName()));
         finalMessage.setReplyMarkup(inlineKeyboardMarkup);
 
         return List.of(finalMessage);

@@ -33,14 +33,18 @@ public class QuizHandler implements Handler {
 
     private final JpaUserRepository userRepository;
     private final JpaQuestionRepository questionRepository;
+    private String correctAnswerForQuestion;
+
+
 
     public QuizHandler(JpaUserRepository userRepository, JpaQuestionRepository questionRepository) {
         this.userRepository = userRepository;
         this.questionRepository = questionRepository;
+
     }
 
     @Override
-    public List<PartialBotApiMethod<? extends Serializable>> handle(User user, String message) {
+    public List<SendMessage> handle(User user, String message) {
         if (message.startsWith(QUIZ_CORRECT)) {
             // действие на коллбек с правильным ответом
             return correctAnswer(user, message);
@@ -52,7 +56,7 @@ public class QuizHandler implements Handler {
         }
     }
 
-    private List<PartialBotApiMethod<? extends Serializable>> correctAnswer(User user, String message) {
+    private List<SendMessage> correctAnswer(User user, String message) {
         log.info("correct");
         final int currentScore = user.getScore() + 1;
         user.setScore(currentScore);
@@ -61,7 +65,7 @@ public class QuizHandler implements Handler {
         return nextQuestion(user);
     }
 
-    private List<PartialBotApiMethod<? extends Serializable>> incorrectAnswer(User user) {
+    private List<SendMessage> incorrectAnswer(User user) {
         final int currentScore = user.getScore();
         // Обновляем лучший итог
         if (user.getHighScore() < currentScore) {
@@ -76,30 +80,31 @@ public class QuizHandler implements Handler {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
 
         List<InlineKeyboardButton> inlineKeyboardButtonsRowOne = List.of(
-                createInlineKeyboardButton("Try again?", QUIZ_START));
+                createInlineKeyboardButton("Повторим?", QUIZ_START));
 
         inlineKeyboardMarkup.setKeyboard(List.of(inlineKeyboardButtonsRowOne));
         SendMessage finalMessage = createMessageTemplate(user);
-        finalMessage.setText(String.format("Incorrect!%nYou scored *%d* points!", currentScore));
+        finalMessage.setText(String.format("Эх, не угадал! Со всеми бывает%nПравильный ответ: *%s*%nТебе удалось набрать *%d*!",correctAnswerForQuestion, currentScore));
         finalMessage.setReplyMarkup(inlineKeyboardMarkup);
 
         return List.of(finalMessage);
     }
 
-    private List<PartialBotApiMethod<? extends Serializable>> startNewQuiz(User user) {
+    private List<SendMessage> startNewQuiz(User user) {
         user.setBotState(State.PLAYING_QUIZ);
         userRepository.save(user);
 
         return nextQuestion(user);
     }
 
-    private List<PartialBotApiMethod<? extends Serializable>> nextQuestion(User user) {
+    private List<SendMessage> nextQuestion(User user) {
         Question question = questionRepository.getRandomQuestion();
 
         // Собираем список возможных вариантов ответа
         List<String> options = new ArrayList<>(List.of(question.getCorrectAnswer(), question.getOptionOne(), question.getOptionTwo(), question.getOptionThree()));
         // Перемешиваем
         Collections.shuffle(options);
+        correctAnswerForQuestion = question.getCorrectAnswer();
 
         // Начинаем формировать сообщение с вопроса
         StringBuilder sb = new StringBuilder();
