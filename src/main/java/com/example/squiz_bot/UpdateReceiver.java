@@ -10,7 +10,7 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-
+import static com.example.squiz_bot.handler.QuizHandler.QUIZ_START;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
@@ -60,11 +60,13 @@ public class UpdateReceiver {
     }
 
     private Handler getHandlerByCallBackQuery(String query) {
+
+
         return handlers.stream()
-                .filter(h -> h.operatedCallBackQuery().stream()
-                        .anyMatch(query::startsWith))
-                .findAny()
-                .orElseThrow(UnsupportedOperationException::new);
+         .filter(h -> h.operatedCallBackQuery().stream()
+                 .anyMatch(query::startsWith))
+         .findAny()
+         .orElseThrow(UnsupportedOperationException::new);
     }
 
     private boolean isMessageWithText(Update update) {
