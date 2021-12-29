@@ -3,12 +3,9 @@ package com.example.squiz_bot.handler;
 import com.example.squiz_bot.State;
 import com.example.squiz_bot.model.User;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 

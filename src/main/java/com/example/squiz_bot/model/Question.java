@@ -20,6 +20,10 @@ public class Question extends AbstractBaseEntity {
     @NotBlank
     private String question;
 
+    @Column(name = "theme")
+    @NotBlank
+    private String theme;
+
     @Column(name = "answer_correct", nullable = false)
     @NotBlank
     private String correctAnswer;

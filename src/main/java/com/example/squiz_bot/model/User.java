@@ -37,6 +37,10 @@ public class User extends AbstractBaseEntity {
     @NotBlank
     private State botState;
 
+    @Column(name = "current_theme", nullable = false)
+    @NotBlank
+    private String theme;
+
     // Конструктор нужен для создания нового пользователя (а может и нет? :))
     public User(Long chatId) {
         this.chatId = chatId;

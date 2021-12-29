@@ -5,14 +5,10 @@ import com.example.squiz_bot.handler.Handler;
 import com.example.squiz_bot.model.User;
 import com.example.squiz_bot.repository.JpaUserRepository;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
-
-import static com.example.squiz_bot.handler.QuizHandler.QUIZ_START;
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 

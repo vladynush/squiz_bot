@@ -7,12 +7,10 @@ import com.example.squiz_bot.repository.JpaQuestionRepository;
 import com.example.squiz_bot.repository.JpaUserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -28,13 +26,14 @@ public class QuizHandler implements Handler {
     public static final String QUIZ_CORRECT = "/quiz_correct";
     public static final String QUIZ_INCORRECT = "/quiz_incorrect";
     public static final String QUIZ_START = "/quiz_start";
+    public static final String QUIZ_THEME = "/quiz_theme";
+
     //Храним варианты ответа
     private static final List<String> OPTIONS = List.of("A", "B", "C", "D");
 
     private final JpaUserRepository userRepository;
     private final JpaQuestionRepository questionRepository;
     private String correctAnswerForQuestion;
-
 
 
     public QuizHandler(JpaUserRepository userRepository, JpaQuestionRepository questionRepository) {
@@ -51,7 +50,18 @@ public class QuizHandler implements Handler {
         } else if (message.startsWith(QUIZ_INCORRECT)) {
             // действие на коллбек с неправильным ответом
             return incorrectAnswer(user);
+        } else if (message.startsWith(QUIZ_THEME)) {
+            return chooseTheme(user);
         } else {
+            try {
+                if ((null != message.split(QUIZ_START)[1])) {
+                    user.setTheme(message.split(QUIZ_START)[1]);
+                }
+            } catch (IndexOutOfBoundsException ignored) {
+
+            }
+
+
             return startNewQuiz(user);
         }
     }
@@ -67,9 +77,11 @@ public class QuizHandler implements Handler {
 
     private List<SendMessage> incorrectAnswer(User user) {
         final int currentScore = user.getScore();
+        String newHighScore = "";
         // Обновляем лучший итог
         if (user.getHighScore() < currentScore) {
             user.setHighScore(currentScore);
+            newHighScore = "Это новый рекорд!";
         }
         // Меняем статус пользователя
         user.setScore(0);
@@ -80,11 +92,28 @@ public class QuizHandler implements Handler {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
 
         List<InlineKeyboardButton> inlineKeyboardButtonsRowOne = List.of(
-                createInlineKeyboardButton("Повторим?", QUIZ_START));
+                createInlineKeyboardButton("Повторим?", QUIZ_START),
+                createInlineKeyboardButton("Сменить тему?", QUIZ_THEME));
 
         inlineKeyboardMarkup.setKeyboard(List.of(inlineKeyboardButtonsRowOne));
         SendMessage finalMessage = createMessageTemplate(user);
-        finalMessage.setText(String.format("Эх, не угадал! Со всеми бывает%nПравильный ответ: *%s*%nТебе удалось набрать *%d*!",correctAnswerForQuestion, currentScore));
+        finalMessage.setText(String.format("Эх, не угадал! Со всеми бывает%nПравильный ответ: *%s*%nТебе удалось набрать *%d*%n%s", correctAnswerForQuestion, currentScore, newHighScore));
+        finalMessage.setReplyMarkup(inlineKeyboardMarkup);
+
+        return List.of(finalMessage);
+    }
+
+    private List<SendMessage> chooseTheme(User user) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        List<InlineKeyboardButton> inlineKeyboardButtonsRowOne = List.of(
+                createInlineKeyboardButton("Случайные", QUIZ_START + "general"),
+                createInlineKeyboardButton("География", QUIZ_START + "geography"));
+        List<InlineKeyboardButton> inlineKeyboardButtonsRowTwo = List.of(
+                createInlineKeyboardButton("История", QUIZ_START + "historical"),
+                createInlineKeyboardButton("Кино", QUIZ_START + "cinema"));
+        inlineKeyboardMarkup.setKeyboard(List.of(inlineKeyboardButtonsRowOne, inlineKeyboardButtonsRowTwo));
+        SendMessage finalMessage = createMessageTemplate(user);
+        finalMessage.setText("Выбери новую тему");
         finalMessage.setReplyMarkup(inlineKeyboardMarkup);
 
         return List.of(finalMessage);
@@ -98,7 +127,7 @@ public class QuizHandler implements Handler {
     }
 
     private List<SendMessage> nextQuestion(User user) {
-        Question question = questionRepository.getRandomQuestion();
+        Question question = questionRepository.getRandomByTheme(user.getTheme());
 
         // Собираем список возможных вариантов ответа
         List<String> options = new ArrayList<>(List.of(question.getCorrectAnswer(), question.getOptionOne(), question.getOptionTwo(), question.getOptionThree()));
@@ -137,7 +166,6 @@ public class QuizHandler implements Handler {
         }
 
 
-
         inlineKeyboardMarkup.setKeyboard(List.of(inlineKeyboardButtonsRowOne, inlineKeyboardButtonsRowTwo));
         SendMessage finalMessage = createMessageTemplate(user);
         finalMessage.setText(sb.toString());
@@ -152,6 +180,6 @@ public class QuizHandler implements Handler {
 
     @Override
     public List<String> operatedCallBackQuery() {
-        return List.of(QUIZ_START, QUIZ_CORRECT, QUIZ_INCORRECT);
+        return List.of(QUIZ_START, QUIZ_CORRECT, QUIZ_INCORRECT, QUIZ_THEME);
     }
 }

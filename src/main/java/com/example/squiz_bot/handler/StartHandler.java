@@ -5,10 +5,7 @@ import com.example.squiz_bot.model.User;
 import com.example.squiz_bot.repository.JpaUserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 

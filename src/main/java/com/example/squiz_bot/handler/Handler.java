@@ -2,10 +2,8 @@ package com.example.squiz_bot.handler;
 
 import com.example.squiz_bot.State;
 import com.example.squiz_bot.model.User;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
-import java.io.Serializable;
 import java.util.List;
 
 public interface Handler {
