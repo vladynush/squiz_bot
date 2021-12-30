@@ -7,9 +7,10 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+
 import java.util.List;
 
-import static com.example.squiz_bot.handler.QuizHandler.QUIZ_START;
+import static com.example.squiz_bot.handler.QuizHandler.QUIZ_THEME;
 import static com.example.squiz_bot.util.TelegramUtil.createInlineKeyboardButton;
 import static com.example.squiz_bot.util.TelegramUtil.createMessageTemplate;
 
@@ -48,7 +49,7 @@ public class RegistrationHandler implements Handler {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
 
         List<InlineKeyboardButton> inlineKeyboardButtonsRowOne = List.of(
-                createInlineKeyboardButton("Запустить испытание", QUIZ_START));
+                createInlineKeyboardButton("Запустить испытание", QUIZ_THEME));
 
         inlineKeyboardMarkup.setKeyboard(List.of(inlineKeyboardButtonsRowOne));
         SendMessage finalMessage = createMessageTemplate(user);

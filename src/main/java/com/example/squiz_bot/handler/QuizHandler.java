@@ -26,10 +26,13 @@ public class QuizHandler implements Handler {
     public static final String QUIZ_CORRECT = "/quiz_correct";
     public static final String QUIZ_INCORRECT = "/quiz_incorrect";
     public static final String QUIZ_START = "/quiz_start";
+    public static final String QUIZ_END = "/quiz_end";
     public static final String QUIZ_THEME = "/quiz_theme";
+
 
     //Храним варианты ответа
     private static final List<String> OPTIONS = List.of("A", "B", "C", "D");
+    private static ArrayList<Integer> answeredQuestions = new ArrayList<>();
 
     private final JpaUserRepository userRepository;
     private final JpaQuestionRepository questionRepository;
@@ -48,8 +51,15 @@ public class QuizHandler implements Handler {
             // действие на коллбек с правильным ответом
             return correctAnswer(user, message);
         } else if (message.startsWith(QUIZ_INCORRECT)) {
+
             // действие на коллбек с неправильным ответом
+            answeredQuestions = new ArrayList<>();
             return incorrectAnswer(user);
+        } else if (message.startsWith(QUIZ_END)) {
+
+            // действие на окончание теста
+
+            return endOfQuiz(user);
         } else if (message.startsWith(QUIZ_THEME)) {
             return chooseTheme(user);
         } else {
@@ -75,6 +85,35 @@ public class QuizHandler implements Handler {
         return nextQuestion(user);
     }
 
+    private List<SendMessage> endOfQuiz(User user) {
+        final int currentScore = user.getScore();
+        String newHighScore = "";
+        // Обновляем лучший итог
+        if (user.getHighScore() < currentScore) {
+            user.setHighScore(currentScore);
+            newHighScore = "Это новый рекорд!";
+        }
+        // Меняем статус пользователя
+        user.setScore(0);
+        user.setBotState(State.NONE);
+        userRepository.save(user);
+
+        // Создаем кнопку для повторного начала игры
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+
+        List<InlineKeyboardButton> inlineKeyboardButtonsRowOne = List.of(
+                createInlineKeyboardButton("Повторим?", QUIZ_START),
+                createInlineKeyboardButton("Сменить тему?", QUIZ_THEME));
+
+        inlineKeyboardMarkup.setKeyboard(List.of(inlineKeyboardButtonsRowOne));
+        SendMessage finalMessage = createMessageTemplate(user);
+
+        finalMessage.setText(String.format("Вопросики кончились!%nТебе удалось набрать *%d* из *%d!*%n *%s*%n",currentScore, answeredQuestions.size(), newHighScore));
+        finalMessage.setReplyMarkup(inlineKeyboardMarkup);
+        answeredQuestions = new ArrayList<>();
+        return List.of(finalMessage);
+    }
+
     private List<SendMessage> incorrectAnswer(User user) {
         final int currentScore = user.getScore();
         String newHighScore = "";
@@ -97,7 +136,8 @@ public class QuizHandler implements Handler {
 
         inlineKeyboardMarkup.setKeyboard(List.of(inlineKeyboardButtonsRowOne));
         SendMessage finalMessage = createMessageTemplate(user);
-        finalMessage.setText(String.format("Эх, не угадал! Со всеми бывает%nПравильный ответ: *%s*%nТебе удалось набрать *%d*%n%s", correctAnswerForQuestion, currentScore, newHighScore));
+
+        finalMessage.setText(String.format("Эх, не угадал! Со всеми бывает%nПравильный ответ: *%s*%nТебе удалось набрать *%d*!%n%s", correctAnswerForQuestion, currentScore, newHighScore));
         finalMessage.setReplyMarkup(inlineKeyboardMarkup);
 
         return List.of(finalMessage);
@@ -113,7 +153,7 @@ public class QuizHandler implements Handler {
                 createInlineKeyboardButton("Кино", QUIZ_START + "cinema"));
         inlineKeyboardMarkup.setKeyboard(List.of(inlineKeyboardButtonsRowOne, inlineKeyboardButtonsRowTwo));
         SendMessage finalMessage = createMessageTemplate(user);
-        finalMessage.setText("Выбери новую тему");
+        finalMessage.setText("Выбери тему для битвы");
         finalMessage.setReplyMarkup(inlineKeyboardMarkup);
 
         return List.of(finalMessage);
@@ -127,50 +167,64 @@ public class QuizHandler implements Handler {
     }
 
     private List<SendMessage> nextQuestion(User user) {
-        Question question = questionRepository.getRandomByTheme(user.getTheme());
 
-        // Собираем список возможных вариантов ответа
-        List<String> options = new ArrayList<>(List.of(question.getCorrectAnswer(), question.getOptionOne(), question.getOptionTwo(), question.getOptionThree()));
-        // Перемешиваем
-        Collections.shuffle(options);
-        correctAnswerForQuestion = question.getCorrectAnswer();
-
-        // Начинаем формировать сообщение с вопроса
-        StringBuilder sb = new StringBuilder();
-        sb.append('*')
-                .append(question.getQuestion())
-                .append("*\n\n");
-
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-
-        // Создаем два ряда кнопок
-        List<InlineKeyboardButton> inlineKeyboardButtonsRowOne = new ArrayList<>();
-        List<InlineKeyboardButton> inlineKeyboardButtonsRowTwo = new ArrayList<>();
-
-        // Формируем сообщение и записываем CallBackData на кнопки
-        for (int i = 0; i < options.size(); i++) {
-            InlineKeyboardButton button = new InlineKeyboardButton();
-
-            final String callbackData = options.get(i).equalsIgnoreCase(question.getCorrectAnswer()) ? QUIZ_CORRECT : QUIZ_INCORRECT;
-
-            button.setText(OPTIONS.get(i));
-            button.setCallbackData(String.format("%s %d", callbackData, question.getId()));
-
-            if (i < 2) {
-                inlineKeyboardButtonsRowOne.add(button);
-            } else {
-                inlineKeyboardButtonsRowTwo.add(button);
+        try {
+            int[] answers = new int[answeredQuestions.size() + 1];
+            answers[0] = 0;
+            for (int i = 0; i < answeredQuestions.size(); i++) {
+                answers[i + 1] = answeredQuestions.get(i);
             }
-            sb.append(OPTIONS.get(i)).append(". ").append(options.get(i));
-            sb.append("\n");
+
+            Question question = questionRepository.getRandomByTheme(user.getTheme(), answers);
+            answeredQuestions.add(question.getId());
+
+            // Собираем список возможных вариантов ответа
+            List<String> options = new ArrayList<>(List.of(question.getCorrectAnswer(), question.getOptionOne(), question.getOptionTwo(), question.getOptionThree()));
+            // Перемешиваем
+            Collections.shuffle(options);
+            correctAnswerForQuestion = question.getCorrectAnswer();
+
+            // Начинаем формировать сообщение с вопроса
+            StringBuilder sb = new StringBuilder();
+            sb.append('*')
+                    .append(question.getQuestion())
+                    .append("*\n\n");
+
+
+            InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+
+            // Создаем два ряда кнопок
+            List<InlineKeyboardButton> inlineKeyboardButtonsRowOne = new ArrayList<>();
+            List<InlineKeyboardButton> inlineKeyboardButtonsRowTwo = new ArrayList<>();
+
+            // Формируем сообщение и записываем CallBackData на кнопки
+            for (int i = 0; i < options.size(); i++) {
+                InlineKeyboardButton button = new InlineKeyboardButton();
+                final String callbackData = options.get(i).equalsIgnoreCase(question.getCorrectAnswer()) ? QUIZ_CORRECT : QUIZ_INCORRECT;
+
+                button.setText(OPTIONS.get(i));
+                button.setCallbackData(String.format("%s %d", callbackData, question.getId()));
+
+                if (i < 2) {
+                    inlineKeyboardButtonsRowOne.add(button);
+                } else {
+                    inlineKeyboardButtonsRowTwo.add(button);
+                }
+                sb.append(OPTIONS.get(i)).append(". ").append(options.get(i));
+                sb.append("\n");
+            }
+
+
+            inlineKeyboardMarkup.setKeyboard(List.of(inlineKeyboardButtonsRowOne, inlineKeyboardButtonsRowTwo));
+            SendMessage finalMessage = createMessageTemplate(user);
+            finalMessage.setText(sb.toString());
+            finalMessage.setReplyMarkup(inlineKeyboardMarkup);
+            return List.of(finalMessage);
+        } catch (NullPointerException e) {
+            return handle(user, QUIZ_END);
         }
 
 
-        inlineKeyboardMarkup.setKeyboard(List.of(inlineKeyboardButtonsRowOne, inlineKeyboardButtonsRowTwo));
-        SendMessage finalMessage = createMessageTemplate(user);
-        finalMessage.setText(sb.toString());
-        finalMessage.setReplyMarkup(inlineKeyboardMarkup);
-        return List.of(finalMessage);
     }
 
     @Override
@@ -180,6 +234,6 @@ public class QuizHandler implements Handler {
 
     @Override
     public List<String> operatedCallBackQuery() {
-        return List.of(QUIZ_START, QUIZ_CORRECT, QUIZ_INCORRECT, QUIZ_THEME);
+        return List.of(QUIZ_START, QUIZ_CORRECT, QUIZ_INCORRECT, QUIZ_THEME, QUIZ_END);
     }
 }

@@ -8,8 +8,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import java.util.Collections;
 import java.util.List;
-
-import static com.example.squiz_bot.handler.QuizHandler.QUIZ_START;
+import static com.example.squiz_bot.handler.QuizHandler.QUIZ_THEME;
 import static com.example.squiz_bot.handler.RegistrationHandler.NAME_CHANGE;
 import static com.example.squiz_bot.util.TelegramUtil.createInlineKeyboardButton;
 import static com.example.squiz_bot.util.TelegramUtil.createMessageTemplate;
@@ -25,8 +24,7 @@ public class HelpHandler implements Handler {
 
         List<InlineKeyboardButton> inlineKeyboardButtonsRowOne = List.of(
                 createInlineKeyboardButton("Изменить имя", NAME_CHANGE),
-                createInlineKeyboardButton("Запустить испытание", QUIZ_START));
-
+                createInlineKeyboardButton("Запустить испытание", QUIZ_THEME));
         inlineKeyboardMarkup.setKeyboard(List.of(inlineKeyboardButtonsRowOne));
         SendMessage finalMessage = createMessageTemplate(user);
         finalMessage.setText(String.format("" +

@@ -6,6 +6,8 @@ import com.example.squiz_bot.model.User;
 import com.example.squiz_bot.repository.JpaUserRepository;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -36,6 +38,7 @@ public class UpdateReceiver {
                 return getHandlerByState(user.getBotState()).handle(user, message.getText());
             } else if (update.hasCallbackQuery()) {
                 CallbackQuery callbackQuery = update.getCallbackQuery();
+
                 Long chatId = callbackQuery.getFrom().getId();
                 User user = userRepository.getByChatId(chatId)
                         .orElseGet(() -> userRepository.save(new User(chatId)));

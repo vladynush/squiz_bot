@@ -12,9 +12,9 @@ import org.springframework.transaction.annotation.Transactional;
 public interface JpaQuestionRepository extends JpaRepository<Question, Integer> {
     @Query(nativeQuery = true, value = "SELECT *  FROM java_quiz ORDER BY random() LIMIT 1")
     Question getRandomQuestion();
-    @Query(nativeQuery = true, value = "SELECT *  FROM java_quiz WHERE theme = ?1 ORDER BY random() LIMIT 1")
-    Question getRandomByTheme(String theme);
+    @Query(nativeQuery = true, value = "SELECT *  FROM java_quiz WHERE theme = ?1 AND id NOT IN (?2) ORDER BY random() LIMIT 1")
+    Question getRandomByTheme(String theme, int[] answered);
 
     @Query(nativeQuery = true, value = "SELECT * FROM java_quiz  WHERE theme =?1")
-    Question getAllByTheme(String theme);
+    Question[] getAllByTheme(String theme);
 }

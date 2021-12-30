@@ -38,7 +38,6 @@ public class User extends AbstractBaseEntity {
     private State botState;
 
     @Column(name = "current_theme", nullable = false)
-    @NotBlank
     private String theme;
 
     // Конструктор нужен для создания нового пользователя (а может и нет? :))
@@ -48,5 +47,6 @@ public class User extends AbstractBaseEntity {
         this.score = 0;
         this.highScore = 0;
         this.botState = State.START;
+        this.theme = "general";
     }
 }
