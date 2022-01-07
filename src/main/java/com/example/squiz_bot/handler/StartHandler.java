@@ -28,11 +28,11 @@ public class StartHandler implements Handler {
         // Приветствуем пользователя
         SendMessage welcomeMessage = createMessageTemplate(user);
         welcomeMessage.setText(String.format(
-                        "Ну здарова, коль не шутишь! Я *%s*%nДобро пожаловать в мою скромную обитель", botUsername
+                        "Приветствую тебя! Я *%s*%nДобро пожаловать в мою скромную обитель%nЯ великий предсказатель! %nСегодня я поведую тебе о *твоей судьбе*!", botUsername
                 ));
         // Просим назваться
         SendMessage registrationMessage = createMessageTemplate(user);
-        registrationMessage.setText("А ты кем будешь?");
+        registrationMessage.setText("Назови себя!");
         // Меняем пользователю статус на - "ожидание ввода имени"
         user.setBotState(State.ENTER_NAME);
         userRepository.save(user);

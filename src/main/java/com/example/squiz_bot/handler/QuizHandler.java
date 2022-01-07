@@ -61,7 +61,8 @@ public class QuizHandler implements Handler {
 
             return endOfQuiz(user);
         } else if (message.startsWith(QUIZ_THEME)) {
-            return chooseTheme(user);
+
+            return endOfQuiz(user);
         } else {
             try {
                 if ((null != message.split(QUIZ_START)[1])) {
@@ -101,15 +102,30 @@ public class QuizHandler implements Handler {
         // Создаем кнопку для повторного начала игры
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
 
-        List<InlineKeyboardButton> inlineKeyboardButtonsRowOne = List.of(
-                createInlineKeyboardButton("Повторим?", QUIZ_START),
-                createInlineKeyboardButton("Сменить тему?", QUIZ_THEME));
+        //List<InlineKeyboardButton> inlineKeyboardButtonsRowOne = List.of(
+              //  createInlineKeyboardButton("Повторим?", QUIZ_START),
+               // createInlineKeyboardButton("Сменить тему?", QUIZ_THEME));
 
-        inlineKeyboardMarkup.setKeyboard(List.of(inlineKeyboardButtonsRowOne));
+       // inlineKeyboardMarkup.setKeyboard(List.of(inlineKeyboardButtonsRowOne));
         SendMessage finalMessage = createMessageTemplate(user);
+        switch (user.getName()) {
+            case "Лора":
+                finalMessage.setText(String.format("Вижу ждёт тебя *ВЕЛИКАЯ ЮРИСПРУДЕНЧЕСКАЯ КАРЬЕРА*!%n%nЕсли будешь смотреть поменьше турецких сериалов... %n%nИ закончишь универ...%n%nКороче, старайся и всё будет супер!"));
+                break;
+            case "Валера":
+                finalMessage.setText(String.format("Вижу проблемы с учёбой тебя окружили... *НАДО СРОЧНО ИХ РЕШАТЬ! НЕ РАССТРАИВАЙ МАМУ!*%n%nЕщё вижу какой-то ГЛОБАЛ ЭЛИТ... что бы это не значило... %n%nИ про какие-то Фортнайты речь (мне кажется что-то несущественное)...%n%nКороче, старайся и всё будет супер!"));
 
-        finalMessage.setText(String.format("Вопросики кончились!%nТебе удалось набрать *%d* из *%d!*%n *%s*%n",currentScore, answeredQuestions.size(), newHighScore));
-        finalMessage.setReplyMarkup(inlineKeyboardMarkup);
+                break;
+            case "Андрей":
+                finalMessage.setText("См. предсказание Ольги!");
+                break;
+            case "Ольга":
+            case "Оля":
+                finalMessage.setText(String.format("Вижу... вижу... *УВИДЕЛ!*%n%nПредстоящий год будет полным счастья и удачи... ещё что-то про новую обшивку на диван... %n%nО, вот это интересно!%n%nВас ожидает... поход в *БОЛЬШОЙ ТЕАТР* в самое ближайшее время. Это я вам точно говорю!"));
+
+
+                break;
+        }
         answeredQuestions = new ArrayList<>();
         return List.of(finalMessage);
     }

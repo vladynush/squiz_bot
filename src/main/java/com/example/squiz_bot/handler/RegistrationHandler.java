@@ -49,11 +49,11 @@ public class RegistrationHandler implements Handler {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
 
         List<InlineKeyboardButton> inlineKeyboardButtonsRowOne = List.of(
-                createInlineKeyboardButton("Запустить испытание", QUIZ_THEME));
+                createInlineKeyboardButton("Хочу узнать свою судьбу!!!", QUIZ_THEME));
 
         inlineKeyboardMarkup.setKeyboard(List.of(inlineKeyboardButtonsRowOne));
         SendMessage finalMessage = createMessageTemplate(user);
-        finalMessage.setText(String.format("Я тебя запомнил: *%s*%nХочешь сыграть?", user.getName()));
+        finalMessage.setText(String.format("Хм... сложно разобрать... вижу очень много о тебе, *%s*%nХочешь узнать?", user.getName()));
         finalMessage.setReplyMarkup(inlineKeyboardMarkup);
 
         return List.of(finalMessage);
@@ -69,11 +69,11 @@ public class RegistrationHandler implements Handler {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
 
         List<InlineKeyboardButton> inlineKeyboardButtonsRowOne = List.of(
-                createInlineKeyboardButton("Верно", NAME_ACCEPT));
+                createInlineKeyboardButton("Да, давай посмотрим!", NAME_ACCEPT));
 
         inlineKeyboardMarkup.setKeyboard(List.of(inlineKeyboardButtonsRowOne));
         SendMessage finalMessage = createMessageTemplate(user);
-        finalMessage.setText(String.format("Как говоришь? *%s*?%nЕсли я правильно услышал - жмакай по кнопке", user.getName()));
+        finalMessage.setText(String.format("*%s*?%nНу что ж... посмотрим что говорят *ЗВЕЗДЫ*...", user.getName()));
         finalMessage.setReplyMarkup(inlineKeyboardMarkup);
 
         return List.of(finalMessage);
